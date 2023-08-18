@@ -1,5 +1,8 @@
 package GoogleFoobar.bunnyworkerlocations;
 
+/*
+    Forgot to copy the challenge text and cannot access it after sending the solution :(
+*/
 public class Solution {
 
     public static void main(String[] args) {
