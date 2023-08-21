@@ -1,12 +1,11 @@
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class PrimeNumberCalculator {
     static int maxNumbers = 10000;
-    public static @NotNull List<Integer> getFirstXPrimes(int x) {
+    @org.jetbrains.annotations.NotNull
+    public static List<Integer> getFirstXPrimes(int x) {
         List<Integer> primes = new ArrayList<>();
         boolean[] isComposite = new boolean[maxNumbers]; // Assuming integer limit
 
@@ -50,6 +49,6 @@ public class PrimeNumberCalculator {
         System.out.println("The first " + x + " prime numbers are: " + primes);
 
         int[] primes2 = sieveOfEratosthenes(30);
-        System.out.println("The first " + x + " prime numbers are: " + primes2.toString());
+        System.out.println("The first " + x + " prime numbers are: " + Arrays.toString(primes2));
     }
 }
