@@ -23,18 +23,18 @@ public class Riddle2 {
             "Globant20Years/results.txt");
 
     public static void main(String[] args) {
-        System.out.println("Globant 20 years. Riddle 2 solution.");
+        System.out.printf("Globant 20 years%n Riddle 2 solution.%n");
         System.out.println(Long.MAX_VALUE);
         Riddle2 riddle = new Riddle2();
         riddle.start();
     }
 
     public void start() {
-        long start = 19L;
-        long step = 10_000_000_000L;
+        long start = 160_020_000_000_019L;
+        long threadStep = 10_000_000_000L;
 
         for (long i = 0L; i < THREADS; i++) {
-            RiddleThread riddleThread = new RiddleThread(start + (step * i), step, i);
+            RiddleThread riddleThread = new RiddleThread(start + (threadStep * i), threadStep, i);
             new Thread(riddleThread).start();
         }
 //        long l1 = 1011235955056179779L;
@@ -58,28 +58,32 @@ public class Riddle2 {
     class RiddleThread implements Runnable {
 
         private final long start;
-        private final long step;
+        private final long threadStep;
         private long actualStep;
         private final long id;
 
-        public RiddleThread(long start, long step, long id) {
+        public RiddleThread(long start, long threadStep, long id) {
             this.id = id;
             this.start = start;
-            this.step = step;
+            this.threadStep = threadStep;
             this.actualStep = 0L;
         }
 
         @Override
         public void run() {
             long digits;
+            long digits_ref;
             long firstDigit;
             long lastDigit;
             long value;
             long factor = 9L;
             long difference;
+            long power = -1L;
+            long step = 10L;
 
             while (true) {
-                long num = start + (step * THREADS * actualStep);
+                long num = start + (threadStep * THREADS * actualStep);
+                digits_ref = String.valueOf(num).length();
 
                 if (result != -1L && num > result) {
                     System.out.println("Thread end -> No need to search more with this thread.");
@@ -88,17 +92,23 @@ public class Riddle2 {
                     System.out.println("Thread " + id + ": " + num);
                 }
 
-                for ( ;num < start + (step * THREADS * actualStep) + step; num += 10L) {
+                for (; num < start + (threadStep * THREADS * actualStep) + threadStep; num += step) {
                     digits = String.valueOf(num).length();
-                    firstDigit = num / powerOfTen(digits - 1L);
 
-                    if (firstDigit != 1) {
-                        num += ((10L - firstDigit) * powerOfTen(digits - 1L)) - 10L;
+                    if (digits != digits_ref || power == -1L) {
+                        power = powerOfTen(digits - 1L);
+                        digits_ref = digits;
+                    }
+
+                    firstDigit = num / power;
+
+                    if (firstDigit != 1L) {
+                        num += ((10L - firstDigit) * powerOfTen(digits - 1L)) - step;
                         continue;
                     }
 
                     lastDigit = (num - (10L * (num/10L)));
-                    value = (num/10L) + lastDigit * powerOfTen(digits - 1L);
+                    value = (num/10L) + lastDigit * power;
 
                     difference = Math.abs((factor * num) - value);
 
@@ -109,7 +119,7 @@ public class Riddle2 {
                         System.out.println("Check: " + num * factor + " - "
                                 + (value/factor) + " Diff: " + difference);
 
-                        if (difference == 0) {
+                        if (difference == 0L) {
                             if (num == -1L || num < result)
                                 result = num;
                             return;
