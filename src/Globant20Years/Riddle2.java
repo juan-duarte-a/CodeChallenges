@@ -17,9 +17,10 @@ spaces, letters, symbols, etc.
  */
 public class Riddle2 {
 
+    private long result = -1L;
     private final long THREADS = 8L;
     private final File resultsFile = new File("/home/juan/IdeaProjects/CodeChallenges/src/" +
-            "Globant20Years/results/results.txt");
+            "Globant20Years/results.txt");
 
     public static void main(String[] args) {
         System.out.println("Globant 20 years. Riddle 2 solution.");
@@ -79,7 +80,13 @@ public class Riddle2 {
 
             while (true) {
                 long num = start + (step * THREADS * actualStep);
-                System.out.println("Thread " + id + ": " + num);
+
+                if (result != -1L && num > result) {
+                    System.out.println("Thread end -> No need to search more with this thread.");
+                    return;
+                } else {
+                    System.out.println("Thread " + id + ": " + num);
+                }
 
                 for ( ;num < start + (step * THREADS * actualStep) + step; num += 10L) {
                     digits = String.valueOf(num).length();
@@ -102,8 +109,11 @@ public class Riddle2 {
                         System.out.println("Check: " + num * factor + " - "
                                 + (value/factor) + " Diff: " + difference);
 
-                        if (difference == 0)
+                        if (difference == 0) {
+                            if (num == -1L || num < result)
+                                result = num;
                             return;
+                        }
                     }
                 }
 
@@ -111,7 +121,7 @@ public class Riddle2 {
             }
         }
 
-        private static long powerOfTen(long digits) {
+        private long powerOfTen(long digits) {
             long power = 1L;
             for (int i = 0; i < digits; i++) {
                 power *= 10L;
