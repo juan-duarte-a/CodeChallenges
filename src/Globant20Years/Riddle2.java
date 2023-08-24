@@ -18,7 +18,7 @@ spaces, letters, symbols, etc.
 public class Riddle2 {
 
     private long result = -1L;
-    private final long THREADS = 8L;
+    private final long THREADS = 1L;
     private final File resultsFile = new File("/home/juan/IdeaProjects/CodeChallenges/src/" +
             "Globant20Years/results.txt");
 
@@ -30,8 +30,8 @@ public class Riddle2 {
     }
 
     public void start() {
-        long start = 160_020_000_000_019L;
-        long threadStep = 10_000_000_000L;
+        long start = 10L;
+        long threadStep = 1_000L;
 
         for (long i = 0L; i < THREADS; i++) {
             RiddleThread riddleThread = new RiddleThread(start + (threadStep * i), threadStep, i);
@@ -46,7 +46,7 @@ public class Riddle2 {
 //        System.out.println(String.valueOf(l3).length());
     }
 
-    public void saveResult(String result) {
+    public synchronized void saveResult(String result) {
         try (FileWriter fileWriter = new FileWriter(resultsFile, true);
              BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
             bufferedWriter.write(String.format(result + "%n"));
@@ -76,10 +76,10 @@ public class Riddle2 {
             long firstDigit;
             long lastDigit;
             long value;
-            long factor = 9L;
+            long factor = 4L;
             long difference;
             long power = -1L;
-            long step = 10L;
+            long step = 1L;
 
             while (true) {
                 long num = start + (threadStep * THREADS * actualStep);
@@ -100,12 +100,12 @@ public class Riddle2 {
                         digits_ref = digits;
                     }
 
-                    firstDigit = num / power;
-
-                    if (firstDigit != 1L) {
-                        num += ((10L - firstDigit) * powerOfTen(digits - 1L)) - step;
-                        continue;
-                    }
+//                    firstDigit = num / power;
+//
+//                    if (firstDigit != 1L) {
+//                        num += ((10L - firstDigit) * powerOfTen(digits - 1L)) - step;
+//                        continue;
+//                    }
 
                     lastDigit = (num - (10L * (num/10L)));
                     value = (num/10L) + lastDigit * power;
