@@ -6,8 +6,8 @@ public class Riddle2b {
 
     public static void main(String[] args) {
         int aux, digit = 9, remainder = 0;
-        BigInteger result = new BigInteger("0");
-        BigInteger position = new BigInteger("1");
+        BigInteger result = BigInteger.ZERO;
+        BigInteger position = BigInteger.ONE;
 
         do {
             aux = 9 * digit + remainder;
