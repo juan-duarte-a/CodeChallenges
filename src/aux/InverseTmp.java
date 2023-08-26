@@ -1,6 +1,6 @@
 package aux;
 
-public class Inverse {
+public class InverseTmp {
 
     public static void main(String[] argv) {
         double[][] a = {
