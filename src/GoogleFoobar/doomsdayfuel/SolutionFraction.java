@@ -82,7 +82,7 @@ public class SolutionFraction {
         Fraction[][] fm = new Fraction[d][d];
 
         for (int i = 0; i < d; i++) {
-            int rowSum = 0;
+            long rowSum = 0;
 
             for (int j = 0; j < d; j++)
                 rowSum += m[i][j];
@@ -154,23 +154,75 @@ public class SolutionFraction {
             }
         }
 
-        int[] result = new int[t + 1];
+        long[] resultLong = new long[t + 1];
+        long[] denominators = new long[t];
 
-        int maxDenominator = 0;
         for (int i = 0; i < t; i++) {
-            result[i] = b[0][i].getNumerator();
-            if (b[0][i].getDenominator() > maxDenominator)
-                maxDenominator = b[0][i].getDenominator();
+            resultLong[i] = b[0][i].getNumerator();
+            denominators[i] = b[0][i].getDenominator();
+        }
+
+        long lcm = lcm(denominators);
+
+        for (int i = 0; i < resultLong.length - 1; i++) {
+            resultLong[i] *= (long) ((double) lcm / b[0][i].getDenominator());
             System.out.print(b[0][i].doubleValue() + "  ");
         }
 
-        for (int i = 0; i < result.length - 1; i++) {
-            result[i] *= (int) ((double) maxDenominator / b[0][i].getDenominator());
+        resultLong[t] = lcm;
+
+        int[] result = new int[t + 1];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (int) resultLong[i];
         }
 
-        result[t] = maxDenominator;
-
         return result;
+    }
+
+    private static boolean isPrime(long n) {
+        if (n < 2L) return false;
+
+        for (long i = 2; i <= Math.sqrt(n) + 1; i++) {
+            if (i != n && n % i == 0)
+                return false;
+        }
+        return true;
+    }
+
+    private static long lcm(long[] n) {
+        long lcm = 1L;
+
+        while (true) {
+            boolean check = true;
+            for (long l : n) {
+                if (l != 1) {
+                    check = false;
+                    break;
+                }
+            }
+            if (check) break;
+
+            long p = 2L;
+            while (true) {
+                if (isPrime(p)) {
+                    for (int i = 0; i < n.length; i++) {
+                        if (n[i] != 1 && n[i] % p == 0) {
+                            n[i] /= p;
+                            check = true;
+                        }
+                    }
+
+                    if (check) {
+                        lcm *= p;
+                        break;
+                    }
+                }
+                p++;
+            }
+        }
+
+        return lcm;
     }
 
     private static Fraction[][] invert(Fraction[][] a) {
@@ -258,30 +310,30 @@ public class SolutionFraction {
 
 class Fraction {
 
-    private final int numerator;
-    private final int denominator;
-    public final static Fraction ZERO = new Fraction(0);
-    public final static Fraction ONE = new Fraction(1);
+    private final long numerator;
+    private final long denominator;
+    public final static Fraction ZERO = new Fraction(0L);
+    public final static Fraction ONE = new Fraction(1L);
 
-    public Fraction(int numerator) {
+    public Fraction(long numerator) {
         this.numerator = numerator;
-        this.denominator = 1;
+        this.denominator = 1L;
     }
 
-    public Fraction(int numerator, int denominator) {
+    public Fraction(long numerator, long denominator) {
         this.numerator = numerator;
         this.denominator = denominator;
     }
 
-    public static Fraction valueOf(int n) {
+    public static Fraction valueOf(long n) {
         return new Fraction(n);
     }
 
-    public int getNumerator() {
+    public long getNumerator() {
         return numerator;
     }
 
-    public int getDenominator() {
+    public long getDenominator() {
         return denominator;
     }
 
@@ -290,7 +342,7 @@ class Fraction {
     }
 
     public Fraction abs() {
-        return new Fraction(numerator < 0 ? -numerator : numerator, denominator);
+        return new Fraction(numerator < 0L ? -numerator : numerator, denominator);
     }
 
     public Fraction multiply(Fraction f) {
@@ -301,14 +353,14 @@ class Fraction {
         return multiply(new Fraction(f.denominator, f.numerator));
     }
 
-    private static Fraction getReducedFraction(int numerator, int denominator) {
-        if (numerator==0)
+    private static Fraction getReducedFraction(long numerator, long denominator) {
+        if (numerator == 0L)
             return ZERO;
 
-        boolean negative = numerator < 0;
+        boolean negative = numerator < 0L;
         numerator = Math.abs(numerator);
 
-        int gcd = gcd(numerator, denominator);
+        long gcd = gcd(numerator, denominator);
         numerator /= gcd;
         denominator /= gcd;
 
@@ -326,29 +378,29 @@ class Fraction {
         return add(new Fraction(-f.numerator, f.denominator));
     }
 
-    private static int gcd(int a, int b) {
-        if (a == 0)
+    private static long gcd(long a, long b) {
+        if (a == 0L)
             return b;
-        else if (b == 0)
+        else if (b == 0L)
             return a;
 
-        final int aTwos = Integer.numberOfTrailingZeros(a);
+        final long aTwos = Long.numberOfTrailingZeros(a);
         a >>= aTwos;
-        final int bTwos = Integer.numberOfTrailingZeros(b);
+        final long bTwos = Long.numberOfTrailingZeros(b);
         b >>= bTwos;
-        final int shift = Math.min(aTwos, bTwos);
+        final long shift = Math.min(aTwos, bTwos);
 
         while (a != b) {
-            final int delta = a - b;
+            final long delta = a - b;
             b = Math.min(a, b);
             a = Math.abs(delta);
-            a >>= Integer.numberOfTrailingZeros(a);
+            a >>= Long.numberOfTrailingZeros(a);
         }
 
         return a << shift;
     }
 
-    public int compareTo(Fraction f) {
+    public long compareTo(Fraction f) {
         return numerator * f.denominator - f.numerator * denominator;
     }
 
