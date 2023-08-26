@@ -1,6 +1,11 @@
 package aux;
 
-public class Inverse {
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public class InverseBD {
+
+    private static final int scale = 7;
 
     public static void main(String[] argv) {
         double[][] a = {
@@ -13,7 +18,15 @@ public class Inverse {
         };
 
         int n = a.length;
-        double[][] d = invert(a);
+        BigDecimal[][] bda = new BigDecimal[n][n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                bda[i][j] = BigDecimal.valueOf(a[i][j]);
+            }
+        }
+
+        BigDecimal[][] d = invert(bda);
 
         System.out.println("The inverse is: ");
         for (int i = 0; i < n; i++) {
@@ -24,13 +37,19 @@ public class Inverse {
         }
     }
 
-    public static double[][] invert(double[][] a) {
+    public static BigDecimal[][] invert(BigDecimal[][] a) {
         int n = a.length;
-        double[][] x = new double[n][n];
-        double[][] b = new double[n][n];
+        BigDecimal[][] x = new BigDecimal[n][n];
+        BigDecimal[][] b = new BigDecimal[n][n];
         int[] index = new int[n];
+
         for (int i = 0; i < n; i++)
-            b[i][i] = 1;
+            for (int j = 0; j < n; j++) {
+                if (i == j)
+                    b[i][j] = BigDecimal.ONE;
+                else
+                    b[i][j] = BigDecimal.ZERO;
+            }
 
         // Transform the matrix into an upper triangle
         gaussian(a, index);
@@ -39,17 +58,17 @@ public class Inverse {
         for (int i = 0; i < n - 1; i++)
             for (int j = i + 1; j < n; j++)
                 for (int k = 0; k < n; k++)
-                    b[index[j]][k] -= a[index[j]][i] * b[index[i]][k];
+                    b[index[j]][k] = b[index[j]][k].subtract(a[index[j]][i].multiply(b[index[i]][k]));
 
         // Perform backward substitutions
         for (int i = 0; i < n; i++) {
-            x[n - 1][i] = b[index[n - 1]][i] / a[index[n - 1]][n - 1];
+            x[n - 1][i] = b[index[n - 1]][i].divide(a[index[n - 1]][n - 1],scale,  RoundingMode.HALF_EVEN);
             for (int j = n - 2; j >= 0; j--) {
                 x[j][i] = b[index[j]][i];
                 for (int k = j + 1; k < n; k++) {
-                    x[j][i] -= a[index[j]][k] * x[k][i];
+                    x[j][i] = x[j][i].subtract(a[index[j]][k].multiply(x[k][i]));
                 }
-                x[j][i] /= a[index[j]][j];
+                x[j][i] = x[j][i].divide(a[index[j]][j], scale, RoundingMode.HALF_EVEN);
             }
         }
         return x;
@@ -58,9 +77,9 @@ public class Inverse {
 // Method to carry out the partial-pivoting Gaussian
 // elimination.  Here index[] stores pivoting order.
 
-    public static void gaussian(double[][] a, int[] index) {
+    public static void gaussian(BigDecimal[][] a, int[] index) {
         int n = index.length;
-        double[] c = new double[n];
+        BigDecimal[] c = new BigDecimal[n];
 
         // Initialize the index
         for (int i = 0; i < n; i++)
@@ -68,10 +87,10 @@ public class Inverse {
 
         // Find the rescaling factors, one from each row
         for (int i = 0; i < n; i++) {
-            double c1 = 0;
+            BigDecimal c1 = BigDecimal.ZERO;
             for (int j = 0; j < n; j++) {
-                double c0 = Math.abs(a[i][j]);
-                if (c0 > c1) c1 = c0;
+                BigDecimal c0 = a[i][j].abs();
+                if (c0.compareTo(c1) > 0) c1 = c0;
             }
             c[i] = c1;
         }
@@ -79,11 +98,11 @@ public class Inverse {
         // Search the pivoting element from each column
         int k = 0;
         for (int j = 0; j < n - 1; j++) {
-            double pi1 = 0;
+            BigDecimal pi1 = BigDecimal.ZERO;
             for (int i = j; i < n; i++) {
-                double pi0 = Math.abs(a[index[i]][j]);
-                pi0 /= c[index[i]];
-                if (pi0 > pi1) {
+                BigDecimal pi0 = a[index[i]][j].abs();
+                pi0 = pi0.divide(c[index[i]], scale, RoundingMode.HALF_EVEN);
+                if (pi0.compareTo(pi1) > 0) {
                     pi1 = pi0;
                     k = i;
                 }
@@ -94,14 +113,14 @@ public class Inverse {
             index[j] = index[k];
             index[k] = itmp;
             for (int i = j + 1; i < n; i++) {
-                double pj = a[index[i]][j] / a[index[j]][j];
+                BigDecimal pj = a[index[i]][j].divide(a[index[j]][j], scale, RoundingMode.HALF_EVEN);
 
                 // Record pivoting ratios below the diagonal
                 a[index[i]][j] = pj;
 
                 // Modify other elements accordingly
                 for (int l = j + 1; l < n; l++)
-                    a[index[i]][l] -= pj * a[index[j]][l];
+                    a[index[i]][l] = a[index[i]][l].subtract(pj.multiply(a[index[j]][l]));
             }
         }
     }

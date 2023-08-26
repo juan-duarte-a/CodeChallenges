@@ -53,14 +53,206 @@ So, putting that together, and making a common denominator, gives an answer in t
 [0, 3, 2, 9, 14].
 */
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Arrays;
+
 public class Solution {
 
     public static void main(String[] args) {
+        int[][] a = {{0, 1, 0, 0, 0, 1},   // s0
+                     {4, 0, 0, 3, 2, 0},   // s1
+                     {0, 0, 0, 0, 0, 0},   // s2
+                     {0, 0, 0, 0, 0, 0},   // s3
+                     {0, 0, 0, 0, 0, 0},   // s4
+                     {0, 0, 0, 0, 0, 0}};  // s5
 
+        int[][] b = {{0, 2, 1, 0, 0},
+                     {0, 0, 0, 3, 4},
+                     {0, 0, 0, 0, 0},
+                     {0, 0, 0, 0, 0},
+                     {0, 0, 0, 0, 0}};
+
+        System.out.println(Arrays.toString(solution(a)));
+        System.out.println();
+        System.out.println(Arrays.toString(solution(b)));
     }
 
     public static int[] solution(int[][] m) {
-        return new int[0];
+        int d = m.length, nt = 0;
+        boolean[] ntm = new boolean[d];
+        BigDecimal[][] bdm = new BigDecimal[d][d];
+
+        for (int i = 0; i < d; i++) {
+            int rowSum = 0;
+
+            for (int j = 0; j < d; j++)
+                rowSum += m[i][j];
+
+            for (int j = 0; j < d; j++) {
+                if (rowSum == 0) {
+                    if (i == j)
+                        bdm[i][j] = BigDecimal.ONE;
+                    else
+                        bdm[i][j] = BigDecimal.ZERO;
+                } else
+                    bdm[i][j] = BigDecimal.valueOf(m[i][j])
+                            .divide(BigDecimal.valueOf(rowSum), 11, RoundingMode.HALF_EVEN);
+            }
+
+            if (rowSum != 0)
+                nt++;
+
+            ntm[i] = rowSum != 0;
+        }
+
+        BigDecimal[][] q = new BigDecimal[nt][nt];
+        BigDecimal[][] r = new BigDecimal[nt][d - nt];
+
+        int x = 0, y, ty;
+        for (int i = 0; i < d; i++) {
+            if (ntm[i]) {
+                y = ty = 0;
+                for (int j = 0; j < d; j++) {
+                    if (ntm[j]) {
+                        q[x][y] = bdm[i][j];
+                        y++;
+                    } else {
+                        r[x][ty] = bdm[i][j];
+                        ty++;
+                    }
+                }
+                x++;
+            }
+        }
+
+        BigDecimal[][] iSubQ = new BigDecimal[nt][nt];
+
+        for (int i = 0; i < nt; i++) {
+            for (int j = 0; j < nt; j++) {
+                if (i == j)
+                    iSubQ[i][j] = BigDecimal.ONE.subtract(q[i][j]);
+                else
+                    iSubQ[i][j] = BigDecimal.ZERO.subtract(q[i][j]);
+            }
+        }
+
+        BigDecimal[][] n = InverseBD.invert(iSubQ);
+
+        System.out.println("The inverse is: ");
+        for (int i = 0; i < nt; i++) {
+            for (int j = 0; j < nt; j++) {
+                System.out.print(n[i][j] + "  ");
+            }
+            System.out.println();
+        }
+
+        int t = d - nt;
+        BigDecimal[][] b = new BigDecimal[nt][t];
+
+        for (int i = 0; i < nt; i++) {
+            for (int j = 0; j < t; j++) {
+                b[i][j] = BigDecimal.ZERO;
+                for (int k = 0; k < nt; k++) {
+                    b[i][j] = b[i][j].add(n[i][k].multiply(r[k][j]));
+                }
+            }
+        }
+
+        int[] result = new int[t];
+
+        for (int i = 0; i < t; i++) {
+            result[i] = b[0][i].intValue();
+        }
+
+        return result;
     }
 
+}
+
+
+class InverseBD {
+
+    private static final int scale = 9;
+
+    public static BigDecimal[][] invert(BigDecimal[][] a) {
+        int n = a.length;
+        BigDecimal[][] x = new BigDecimal[n][n];
+        BigDecimal[][] b = new BigDecimal[n][n];
+        int[] index = new int[n];
+
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++) {
+                if (i == j)
+                    b[i][j] = BigDecimal.ONE;
+                else
+                    b[i][j] = BigDecimal.ZERO;
+            }
+
+        gaussian(a, index);
+
+        for (int i = 0; i < n - 1; i++)
+            for (int j = i + 1; j < n; j++)
+                for (int k = 0; k < n; k++)
+                    b[index[j]][k] = b[index[j]][k].subtract(a[index[j]][i].multiply(b[index[i]][k]));
+
+        for (int i = 0; i < n; i++) {
+            x[n - 1][i] = b[index[n - 1]][i].divide(a[index[n - 1]][n - 1],scale,  RoundingMode.HALF_EVEN);
+            for (int j = n - 2; j >= 0; j--) {
+                x[j][i] = b[index[j]][i];
+
+                for (int k = j + 1; k < n; k++) {
+                    x[j][i] = x[j][i].subtract(a[index[j]][k].multiply(x[k][i]));
+                }
+                x[j][i] = x[j][i].divide(a[index[j]][j], scale, RoundingMode.HALF_EVEN);
+            }
+        }
+        return x;
+    }
+
+    public static void gaussian(BigDecimal[][] a, int[] index) {
+        int n = index.length;
+        BigDecimal[] c = new BigDecimal[n];
+
+        for (int i = 0; i < n; i++)
+            index[i] = i;
+
+        for (int i = 0; i < n; i++) {
+            BigDecimal c1 = BigDecimal.ZERO;
+            for (int j = 0; j < n; j++) {
+                BigDecimal c0 = a[i][j].abs();
+
+                if (c0.compareTo(c1) > 0) c1 = c0;
+            }
+            c[i] = c1;
+        }
+
+        int k = 0;
+        for (int j = 0; j < n - 1; j++) {
+            BigDecimal pi1 = BigDecimal.ZERO;
+
+            for (int i = j; i < n; i++) {
+                BigDecimal pi0 = a[index[i]][j].abs();
+                pi0 = pi0.divide(c[index[i]], scale, RoundingMode.HALF_EVEN);
+
+                if (pi0.compareTo(pi1) > 0) {
+                    pi1 = pi0;
+                    k = i;
+                }
+            }
+
+            int itmp = index[j];
+            index[j] = index[k];
+            index[k] = itmp;
+
+            for (int i = j + 1; i < n; i++) {
+                BigDecimal pj = a[index[i]][j].divide(a[index[j]][j], scale, RoundingMode.HALF_EVEN);
+
+                a[index[i]][j] = pj;
+
+                for (int l = j + 1; l < n; l++)
+                    a[index[i]][l] = a[index[i]][l].subtract(pj.multiply(a[index[j]][l]));
+            }
+        }
+    }
 }
