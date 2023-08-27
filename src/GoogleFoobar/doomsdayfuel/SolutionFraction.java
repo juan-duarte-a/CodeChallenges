@@ -58,6 +58,13 @@ import java.util.Arrays;
 public class SolutionFraction {
 
     public static void main(String[] args) {
+        int[][] m = {{1, 2, 3, 0, 0, 0},
+                     {4, 5, 6, 0, 0, 0},
+                     {7, 8, 9, 1, 0, 0},
+                     {0, 0, 0, 0, 1, 2},
+                     {0, 0, 0, 0, 0, 0},
+                     {0, 0, 0, 0, 0, 0}};
+
         int[][] a = {{0, 1, 0, 0, 0, 1},   // s0
                      {4, 0, 0, 3, 2, 0},   // s1
                      {0, 0, 0, 0, 0, 0},   // s2
@@ -71,9 +78,28 @@ public class SolutionFraction {
                      {0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0}};
 
+        int[][] c = {{0, 0, 0, 0},
+                     {0, 0, 0, 0},
+                     {0, 0, 0, 0},
+                     {0, 0, 0, 0}};
+
+        int[][] d = {{0, 3, 0},
+                     {0, 0, 0},
+                     {0, 0, 0}};
+
+        int[][] e = {{0}};
+
+        System.out.println(Arrays.toString(solution(m)));
+        System.out.println();
         System.out.println(Arrays.toString(solution(a)));
         System.out.println();
         System.out.println(Arrays.toString(solution(b)));
+        System.out.println();
+        System.out.println(Arrays.toString(solution(c)));
+        System.out.println();
+        System.out.println(Arrays.toString(solution(d)));
+        System.out.println();
+        System.out.println(Arrays.toString(solution(e)));
     }
 
     public static int[] solution(int[][] m) {
@@ -87,9 +113,17 @@ public class SolutionFraction {
             for (int j = 0; j < d; j++)
                 rowSum += m[i][j];
 
+            if ((i == 0 && rowSum == m[0][0])) {
+                int[] r = new int[d + 1];
+                Arrays.fill(r, 0);
+                r[0] = 1;
+                r[d] = 1;
+                return r;
+            }
+
             for (int j = 0; j < d; j++) {
                 if (rowSum == 0)
-                    fm[i][j] = Fraction.ONE;
+                    fm[i][j] = Fraction.ZERO;
                 else
                     fm[i][j] = Fraction.valueOf(m[i][j])
                             .divide(Fraction.valueOf(rowSum));
@@ -156,6 +190,7 @@ public class SolutionFraction {
 
         long[] resultLong = new long[t + 1];
         long[] denominators = new long[t];
+        int[] result;
 
         for (int i = 0; i < t; i++) {
             resultLong[i] = b[0][i].getNumerator();
@@ -170,8 +205,7 @@ public class SolutionFraction {
         }
 
         resultLong[t] = lcm;
-
-        int[] result = new int[t + 1];
+        result = new int[t + 1];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = (int) resultLong[i];
@@ -183,7 +217,7 @@ public class SolutionFraction {
     private static boolean isPrime(long n) {
         if (n < 2L) return false;
 
-        for (long i = 2; i <= Math.sqrt(n) + 1; i++) {
+        for (long i = 2L; i <= Math.sqrt(n) + 1; i++) {
             if (i != n && n % i == 0)
                 return false;
         }
@@ -196,7 +230,7 @@ public class SolutionFraction {
         while (true) {
             boolean check = true;
             for (long l : n) {
-                if (l != 1) {
+                if (l != 1L) {
                     check = false;
                     break;
                 }
