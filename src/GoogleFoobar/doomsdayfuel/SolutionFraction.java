@@ -224,7 +224,7 @@ public class SolutionFraction {
         return true;
     }
 
-    private static long lcm(long[] n) {
+    static long lcm(long[] n) {
         long lcm = 1L;
 
         while (true) {
@@ -413,25 +413,7 @@ class Fraction {
     }
 
     private static long gcd(long a, long b) {
-        if (a == 0L)
-            return b;
-        else if (b == 0L)
-            return a;
-
-        final long aTwos = Long.numberOfTrailingZeros(a);
-        a >>= aTwos;
-        final long bTwos = Long.numberOfTrailingZeros(b);
-        b >>= bTwos;
-        final long shift = Math.min(aTwos, bTwos);
-
-        while (a != b) {
-            final long delta = a - b;
-            b = Math.min(a, b);
-            a = Math.abs(delta);
-            a >>= Long.numberOfTrailingZeros(a);
-        }
-
-        return a << shift;
+        return (a * b) / SolutionFraction.lcm(new long[] {a, b});
     }
 
     public long compareTo(Fraction f) {
